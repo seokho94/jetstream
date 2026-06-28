@@ -36,16 +36,19 @@ def list_currents(response: Response) -> dict:
 
 @app.get("/v1/currents/{current_id}", response_model=CurrentView)
 def get_current(current_id: str, response: Response) -> CurrentView:
-    cv = seed.build_current(current_id)  # published views are seed-backed in Phase 0
+    cv, source = repo.get_current(current_id)
     if cv is None:
         raise HTTPException(status_code=404, detail="current not found")
+    response.headers["X-Data-Source"] = source
     response.headers["ETag"] = cv.etag
     return cv
 
 
 @app.get("/v1/digests/{issue}", response_model=Digest)
-def get_digest(issue: int) -> Digest:
-    return seed.build_digest(issue)
+def get_digest(issue: int, response: Response) -> Digest:
+    digest, source = repo.get_digest(issue)
+    response.headers["X-Data-Source"] = source
+    return digest
 
 
 @app.get("/v1/search")

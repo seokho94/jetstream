@@ -191,6 +191,55 @@ def volume_timeline(query: str, timespan: str = "10w", drop_last: bool = True) -
     return series
 
 
+# GDELT sourcecountry (country name) → coarse region_block for coverage (design §10).
+COUNTRY_REGION = {
+    "United States": "North America", "Canada": "North America", "Mexico": "North America",
+    "United Kingdom": "Europe", "Ireland": "Europe", "France": "Europe", "Germany": "Europe",
+    "Spain": "Europe", "Italy": "Europe", "Netherlands": "Europe", "Belgium": "Europe",
+    "Sweden": "Europe", "Norway": "Europe", "Denmark": "Europe", "Finland": "Europe",
+    "Poland": "Europe", "Austria": "Europe", "Switzerland": "Europe", "Portugal": "Europe",
+    "Greece": "Europe", "Czech Republic": "Europe", "Hungary": "Europe", "Romania": "Europe",
+    "Ukraine": "Europe", "Russia": "Europe",
+    "Israel": "MENA", "Iran": "MENA", "Saudi Arabia": "MENA", "United Arab Emirates": "MENA",
+    "Qatar": "MENA", "Turkey": "MENA", "Egypt": "MENA", "Iraq": "MENA", "Syria": "MENA",
+    "Lebanon": "MENA", "Jordan": "MENA", "Yemen": "MENA", "Kuwait": "MENA",
+    "China": "Asia", "Japan": "Asia", "South Korea": "Asia", "India": "Asia", "Pakistan": "Asia",
+    "Indonesia": "Asia", "Singapore": "Asia", "Malaysia": "Asia", "Thailand": "Asia",
+    "Vietnam": "Asia", "Philippines": "Asia", "Taiwan": "Asia", "Hong Kong": "Asia",
+    "Bangladesh": "Asia", "Sri Lanka": "Asia",
+    "Australia": "Oceania", "New Zealand": "Oceania",
+    "Brazil": "Latin America", "Argentina": "Latin America", "Chile": "Latin America",
+    "Colombia": "Latin America", "Peru": "Latin America", "Venezuela": "Latin America",
+    "South Africa": "Africa", "Nigeria": "Africa", "Kenya": "Africa", "Ethiopia": "Africa",
+    "Ghana": "Africa", "Morocco": "Africa", "Algeria": "Africa",
+}
+
+
+def source_facets(query: str, timespan: str = "1w", maxrecords: int = 250) -> dict:
+    """One artlist call → spread (outlets, countries) + region coverage + top outlet."""
+    arts = _get_json(
+        {"query": query, "mode": "artlist", "format": "json",
+         "maxrecords": str(max(1, min(maxrecords, 250))), "timespan": timespan, "sort": "datedesc"}
+    ).get("articles", []) or []
+    outlets: dict[str, int] = {}
+    countries: set = set()
+    regions: dict[str, int] = {}
+    for a in arts:
+        dom = registrable_domain(a.get("domain", ""))
+        if dom:
+            outlets[dom] = outlets.get(dom, 0) + 1
+        sc = a.get("sourcecountry")
+        if sc:
+            countries.add(sc)
+            reg = COUNTRY_REGION.get(sc, "Other")
+            regions[reg] = regions.get(reg, 0) + 1
+    wl = {d: c for d, c in outlets.items() if d in WHITELIST}
+    ranked_outlets = sorted((wl or outlets).items(), key=lambda kv: kv[1], reverse=True)
+    top_outlets = [d for d, _ in ranked_outlets[:5]]
+    return {"outlets": len(outlets), "countries": len(countries), "regions": regions,
+            "top_outlets": top_outlets, "top_outlet": top_outlets[0] if top_outlets else None, "n": len(arts)}
+
+
 def source_breadth(query: str, timespan: str = "1w", maxrecords: int = 250) -> tuple[int, int]:
     """Distinct outlets + countries covering a query (spread signal, design §1.3)."""
     arts = _get_json(

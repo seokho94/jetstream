@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 
 from . import seed
-from .schemas import BoardView
+from .schemas import BoardView, CurrentView, Digest
 
 try:
     import psycopg
@@ -42,27 +42,16 @@ def list_currents() -> tuple[list[dict], str]:
                 cur.execute(
                     """
                     SELECT c.id, c.name, c.color_key, c.vertical_id, cr.hex, c.status
-                    FROM current c
-                    JOIN color_registry cr ON cr.color_key = c.color_key
-                    WHERE c.status = 'active'
-                    ORDER BY c.id
+                    FROM current c JOIN color_registry cr ON cr.color_key = c.color_key
+                    WHERE c.status = 'active' ORDER BY c.id
                     """
                 )
                 rows = cur.fetchall()
-            return (
-                [
-                    dict(currentId=r[0], name=r[1], colorKey=r[2], verticalId=r[3], hex=r[4], status=r[5])
-                    for r in rows
-                ],
-                "db",
-            )
+            return ([dict(currentId=r[0], name=r[1], colorKey=r[2], verticalId=r[3], hex=r[4], status=r[5]) for r in rows], "db")
         except Exception:
-            pass  # fall through to seed
+            pass
     return (
-        [
-            dict(currentId=m["id"], name=m["name"], colorKey=m["id"], verticalId="geopolitics", hex=None, status="active")
-            for m in seed.META
-        ],
+        [dict(currentId=m["id"], name=m["name"], colorKey=m["id"], verticalId="geopolitics", hex=None, status="active") for m in seed.META],
         "seed",
     )
 
@@ -81,22 +70,19 @@ def _board_from_db() -> BoardView | None:
                 """
             )
             row = cur.fetchone()
-        if not row:
-            return None
+            if not row:
+                return None
+            cur.execute("SELECT issue, week_of, lede FROM digest WHERE store='published' ORDER BY issue DESC LIMIT 1")
+            d = cur.fetchone()
+        teaser = (
+            {"issue": d[0], "weekOf": d[1].isoformat(), "lede": d[2]}
+            if d else seed.build_board().digestTeaser
+        )
         bid, as_of, generated_at, is_current, todays_read, streamgraph, ranked, stats, etag = row
-        teaser = seed.build_board().digestTeaser  # digest is still seed-backed in Phase 0
         return BoardView(
-            id=bid,
-            asOf=as_of.isoformat(),
-            generatedAt=generated_at.isoformat(),
-            isCurrent=is_current,
-            todaysRead=todays_read,
-            streamgraph=streamgraph,
-            ranked=ranked,
-            digestTeaser=teaser,
-            stats=stats,
-            etag=etag,
-            lang="en",
+            id=bid, asOf=as_of.isoformat(), generatedAt=generated_at.isoformat(), isCurrent=is_current,
+            todaysRead=todays_read, streamgraph=streamgraph, ranked=ranked, digestTeaser=teaser,
+            stats=stats, etag=etag, lang="en",
         )
     except Exception:
         return None
@@ -107,7 +93,6 @@ def get_board() -> tuple[BoardView, str]:
     board = _board_from_db()
     if board is not None:
         return board, "db"
-
     board = seed.build_board()
     rows, source = list_currents()
     if source == "db" and rows:
@@ -118,3 +103,57 @@ def get_board() -> tuple[BoardView, str]:
                 row.name = names[row.currentId]
                 row.colorKey = colors[row.currentId]
     return board, source
+
+
+def get_current(current_id: str) -> tuple[CurrentView | None, str]:
+    """Published current_view (real arc/coverage/brief/timeline) when present, else seed."""
+    dsn = _dsn()
+    if psycopg and dsn:
+        try:
+            with psycopg.connect(dsn, connect_timeout=2) as conn, conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT current_id, name, color_key, rank, state, arc, brief, timeline, coverage, as_of, etag
+                    FROM current_view
+                    WHERE current_id=%s AND store='published' AND is_last_known_good
+                    ORDER BY version DESC LIMIT 1
+                    """,
+                    (current_id,),
+                )
+                row = cur.fetchone()
+            if row:
+                return (
+                    CurrentView(
+                        currentId=row[0], store="published", version=1, name=row[1], colorKey=row[2],
+                        rank=row[3], state=row[4], arc=row[5], brief=row[6], timeline=row[7], coverage=row[8],
+                        asOf=row[9].isoformat(), isLastKnownGood=True, etag=row[10], lang="en",
+                    ),
+                    "db",
+                )
+        except Exception:
+            pass
+    return (seed.build_current(current_id), "seed")
+
+
+def get_digest(issue: int) -> tuple[Digest, str]:
+    """Published digest (real reshuffle/movers from weekly_rank) when present, else seed."""
+    dsn = _dsn()
+    if psycopg and dsn:
+        try:
+            with psycopg.connect(dsn, connect_timeout=2) as conn, conn.cursor() as cur:
+                cur.execute(
+                    "SELECT issue, week_of, lede, reshuffle, movers, blurbs, watch_next, stats FROM digest WHERE issue=%s",
+                    (issue,),
+                )
+                row = cur.fetchone()
+            if row:
+                return (
+                    Digest(
+                        issue=row[0], weekOf=row[1].isoformat(), store="published", lede=row[2],
+                        reshuffle=row[3], movers=row[4], blurbs=row[5], watchNext=row[6], stats=row[7], lang="en",
+                    ),
+                    "db",
+                )
+        except Exception:
+            pass
+    return (seed.build_digest(issue), "seed")
