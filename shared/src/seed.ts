@@ -146,7 +146,7 @@ export function buildCurrentView(id: string): CurrentView | null {
       eventId: `${seed}-e${k + 1}`,
       isLatest: k === dates.length - 1,
       sources: [
-        { outlet: k % 2 ? "AP" : "Reuters", url: "https://example.com/s", charStart: 0, charEnd: 12 },
+        { text: "", outlet: k % 2 ? "AP" : "Reuters", url: "https://example.com/s", charStart: 0, charEnd: 12 },
       ],
     })),
     coverage: {
