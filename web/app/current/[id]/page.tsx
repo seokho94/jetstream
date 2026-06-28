@@ -60,7 +60,22 @@ export default async function CurrentPage({ params }: { params: { id: string } }
             <span className="node-no">{n.node}</span>
             <div className="date">{n.date}</div>
             <div className="txt">{n.text}</div>
-            <div className="src">{n.sources.map((s) => s.outlet).join(" · ")}</div>
+            <div className="src">
+              {n.sources
+                .filter((s) => s.outlet)
+                .map((s, i) => (
+                  <span key={i}>
+                    {i > 0 && " · "}
+                    {s.url ? (
+                      <a href={s.url} target="_blank" rel="noreferrer" title={s.text || undefined}>
+                        {s.outlet}
+                      </a>
+                    ) : (
+                      s.outlet
+                    )}
+                  </span>
+                ))}
+            </div>
           </li>
         ))}
       </ol>

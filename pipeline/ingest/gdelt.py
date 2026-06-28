@@ -251,6 +251,26 @@ def source_breadth(query: str, timespan: str = "1w", maxrecords: int = 250) -> t
     return len(outlets), len(countries)
 
 
+def articles_near(query: str, date_iso: str, window_days: int = 2, maxrecords: int = 30) -> list[dict]:
+    """Whitelisted article stubs published within ±window_days of date_iso (for timeline events)."""
+    import datetime as _dt
+    d = _dt.date.fromisoformat(date_iso)
+    start = (d - _dt.timedelta(days=window_days)).strftime("%Y%m%d000000")
+    end = (d + _dt.timedelta(days=window_days)).strftime("%Y%m%d235959")
+    arts = _get_json(
+        {"query": query, "mode": "artlist", "format": "json", "maxrecords": str(maxrecords),
+         "startdatetime": start, "enddatetime": end, "sort": "hybridrel"}
+    ).get("articles", []) or []
+    out = []
+    for a in arts:
+        dom = registrable_domain(a.get("domain", ""))
+        if dom in WHITELIST and a.get("url"):
+            out.append({"url": a["url"], "title": a.get("title", "").strip(), "outlet": dom})
+        if len(out) >= 5:
+            break
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="GDELT discovery (Phase 0).")
     ap.add_argument("--vertical", default="geopolitics")

@@ -114,3 +114,57 @@ def synthesize_brief(current_name: str, docs: list[dict]) -> dict | None:
         return None
     whats, why = _split_brief(full)
     return {"whatsHappening": whats, "whyItMatters": why, "citations": citations}
+
+
+def synthesize_event(current_name: str, date: str, docs: list[dict]) -> dict | None:
+    """One-sentence grounded summary of what happened around `date` for a current.
+
+    Returns {text, sources:[{text,outlet,url,charStart,charEnd}]} or None.
+    """
+    if not available():
+        return None
+    sources = [d for d in docs if d.get("body")][:3]
+    if not sources:
+        return None
+    client = anthropic.Anthropic()
+    content: list[dict] = []
+    for d in sources:
+        title = f"{d.get('outlet', '')}: {d.get('title', '')}".strip(": ").strip()
+        content.append(
+            {"type": "document", "source": {"type": "text", "media_type": "text/plain", "data": d["body"][:BODY_CHARS]},
+             "title": title or "source", "citations": {"enabled": True}}
+        )
+    content.append(
+        {"type": "text", "text": (
+            f"다음 출처 기사들이 공통으로 다루는 핵심 사건이나 전개를 한국어로 간결한 한 문장으로 요약하라. "
+            f"'{current_name}' 흐름의 이 시기 움직임을 설명하면 된다. 날짜를 단정하거나 사과하지 말고, "
+            f"'문서'·'출처' 같은 메타 표현 없이, 출처에 없는 내용은 추가하지 마라. 머리말·마크다운·라벨 없이 사실 한 문장만."
+        )}
+    )
+    model = os.environ.get("SYNTHESIS_MODEL") or SYNTHESIS_MODEL
+    try:
+        resp = client.messages.create(model=model, max_tokens=300, messages=[{"role": "user", "content": content}])
+    except Exception:
+        return None
+
+    parts: list[str] = []
+    cites: list[dict] = []
+    for block in resp.content:
+        if getattr(block, "type", None) != "text":
+            continue
+        parts.append(block.text)
+        for c in getattr(block, "citations", None) or []:
+            idx = getattr(c, "document_index", 0) or 0
+            s = sources[idx] if 0 <= idx < len(sources) else {}
+            cites.append({"text": getattr(c, "cited_text", "") or "", "outlet": s.get("outlet", ""),
+                          "url": s.get("url", ""), "charStart": getattr(c, "start_char_index", 0) or 0,
+                          "charEnd": getattr(c, "end_char_index", 0) or 0})
+    text = re.sub(r"(?m)^\s*#+.*$", "", "".join(parts)).replace("**", "").strip()
+    text = " ".join(text.split())
+    # Reject refusals / meta-answers ("죄송…", "제공된 문서에는… 정보가 없습니다") — keep the placeholder instead.
+    _bad = ("죄송", "제공된", "문서에", "문서들", "정보가 없", "정보가 포함", "포함되어 있지", "찾을 수 없")
+    if not text or any(m in text for m in _bad):
+        return None
+    if not cites:
+        cites = [{"text": "", "outlet": d["outlet"], "url": d["url"], "charStart": 0, "charEnd": 0} for d in sources]
+    return {"text": text, "sources": cites}
