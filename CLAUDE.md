@@ -26,6 +26,14 @@ docker compose up -d
 export DATABASE_URL=postgresql://meridian:meridian@localhost:5432/meridian
 # API reads DB when DATABASE_URL is reachable (else seed); check: curl -i /v1/board | grep X-Data-Source
 
+# Live data: seed sources, then build board/detail/digest from GDELT
+python -m scripts.seed_sources          # populate source_registry (67 curated outlets)
+python -m scripts.build_board           # GDELT → momentum_point / board_view / current_view / digest
+
+# Periodic refresh (Windows Scheduled Task — run yourself; installs standing execution):
+#   schtasks /create /tn MeridianRefresh /tr "powershell -NoProfile -ExecutionPolicy Bypass -File C:\git\jetstream\scriptsefresh.ps1" /sc DAILY /st 06:00 /f
+#   schtasks /delete /tn MeridianRefresh /f     # remove
+
 # Python lint / tests (after `pip install -e ".[dev]"`)
 ruff check pipeline api scripts
 pytest
