@@ -25,6 +25,9 @@ from pipeline.momentum import rank, signals_for
 from pipeline.normalize.crawl import crawl
 from pipeline.synthesis.synthesize import available as synth_available
 from pipeline.synthesis.synthesize import synthesize_brief
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))  # .env: DATABASE_URL, ANTHROPIC_API_KEY, SYNTHESIS_MODEL
 
 DSN = os.environ.get("DATABASE_URL", "postgresql://meridian:meridian@localhost:5432/meridian")
 STATE_KO = {"rising": "상승", "peaking": "정점", "cooling": "냉각", "steady": "안정"}

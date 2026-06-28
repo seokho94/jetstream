@@ -107,3 +107,8 @@ a { color: inherit; text-decoration: none; }
 .stat span { font-size: 11px; color: var(--muted); }
 .muted { color: var(--muted); }
 svg.chart { display: block; width: 100%; height: auto; }
+
+/* brief citations (근거 chips) */
+.cites { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 18px 0; }
+.cites .cites-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.cites .cite { font-size: 11px; color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 38%, var(--border)); background: color-mix(in srgb, var(--c) 10%, transparent); padding: 2px 8px; border-radius: 999px; }

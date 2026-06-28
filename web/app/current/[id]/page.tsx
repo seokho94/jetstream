@@ -33,6 +33,16 @@ export default async function CurrentPage({ params }: { params: { id: string } }
       <p className="body">
         <b>왜 중요</b> — {cv.brief.whyItMatters}
       </p>
+      {cv.brief.citations.length > 0 && (
+        <div className="cites">
+          <span className="cites-label">근거</span>
+          {Array.from(new Map(cv.brief.citations.map((c) => [c.url || c.outlet, c])).values()).map((c, i) => (
+            <a key={i} className="cite" href={c.url || "#"} target="_blank" rel="noreferrer" title={c.text}>
+              {c.outlet || "source"}
+            </a>
+          ))}
+        </div>
+      )}
 
       <h3>Timeline</h3>
       <ol className="timeline">

@@ -3,7 +3,10 @@
 Endpoints follow docs/design/api-contract.md (REST + per-view BFF). Reads from
 Postgres when DATABASE_URL is reachable (X-Data-Source: db), else seed (: seed).
 """
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Response
+
+load_dotenv()
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import repo, seed
