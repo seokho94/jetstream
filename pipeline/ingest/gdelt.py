@@ -87,7 +87,7 @@ def _lang_iso(name: str) -> str:
     return _LANG_MAP.get((name or "").lower(), (name or "und").lower()[:2])
 
 
-def _get_json(params: dict, retries: int = 3) -> dict:
+def _get_json(params: dict, retries: int = 5) -> dict:
     """GET the DOC API with retry/backoff on 429/5xx. Returns parsed JSON."""
     req = urllib.request.Request(
         f"{GDELT_DOC_URL}?{urllib.parse.urlencode(params)}",
@@ -189,6 +189,17 @@ def volume_timeline(query: str, timespan: str = "10w", drop_last: bool = True) -
     if drop_last and len(series) > 1:
         series = series[:-1]
     return series
+
+
+def source_breadth(query: str, timespan: str = "1w", maxrecords: int = 250) -> tuple[int, int]:
+    """Distinct outlets + countries covering a query (spread signal, design §1.3)."""
+    arts = _get_json(
+        {"query": query, "mode": "artlist", "format": "json",
+         "maxrecords": str(max(1, min(maxrecords, 250))), "timespan": timespan, "sort": "datedesc"}
+    ).get("articles", []) or []
+    outlets = {registrable_domain(a.get("domain", "")) for a in arts if a.get("domain")}
+    countries = {a.get("sourcecountry") for a in arts if a.get("sourcecountry")}
+    return len(outlets), len(countries)
 
 
 def main() -> None:

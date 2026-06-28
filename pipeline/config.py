@@ -24,6 +24,7 @@ PERSIST_GAP_TOL = 2
 BASELINE_WINDOW_DAYS = 90  # 60–90
 W_ACCEL, W_PERSIST, W_VOLUME, W_SPREAD = 0.30, 0.30, 0.25, 0.15
 STATE_K = 1.0
+STATE_REL_THRESHOLD = 0.08  # 2-week relative-trend band for rising/cooling
 STATE_HYSTERESIS_DAYS = 2
 STATE_DEADBAND = 0.7
 STATES = ("rising", "peaking", "cooling", "steady")
