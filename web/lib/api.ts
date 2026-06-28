@@ -9,6 +9,7 @@ import {
   type BoardView,
   type CurrentView,
   type Digest,
+  type SearchHit,
 } from "@jetstream/shared";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
@@ -43,4 +44,17 @@ export async function getCurrent(id: string): Promise<CurrentView | null> {
 
 export async function getDigest(issue: number): Promise<Digest> {
   return (await fetchJson<Digest>(`/v1/digests/${issue}`)) ?? buildDigest(issue);
+}
+
+// Client-callable (no ISR cache) — search is interactive and per-query.
+export async function searchHits(q: string): Promise<SearchHit[]> {
+  if (!q.trim()) return [];
+  try {
+    const res = await fetch(`${BASE}/v1/search?q=${encodeURIComponent(q)}`);
+    if (!res.ok) return [];
+    const data = (await res.json()) as { results: SearchHit[] };
+    return data.results ?? [];
+  } catch {
+    return [];
+  }
 }

@@ -248,3 +248,16 @@ export interface Digest {
   stats: { currentsTracked: number; newThreads: number; storiesScanned: number };
   lang: string;
 }
+
+// ── search (CANON R14: Phase 0 = currents + grounded timeline events; ILIKE) ──
+export interface SearchHit {
+  type: "current" | "event";
+  id: string;
+  currentId: string;
+  title: string;
+  snippet: string;
+  colorKey: string;
+  state?: MomentumState | null;
+  date?: string | null;
+  url?: string | null;
+}

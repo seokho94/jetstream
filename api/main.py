@@ -55,8 +55,11 @@ def get_digest(issue: int, response: Response) -> Digest:
 
 
 @app.get("/v1/search")
-def get_search(q: str = "") -> dict:
-    return {"q": q, "results": seed.search(q)}
+def get_search(response: Response, q: str = "") -> dict:
+    results, source = repo.search(q)
+    response.headers["X-Data-Source"] = source
+    response.headers["Cache-Control"] = "private, max-age=30"  # api-contract §4.2
+    return {"q": q, "results": results}
 
 
 @app.get("/healthz")

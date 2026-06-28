@@ -157,3 +157,65 @@ def get_digest(issue: int) -> tuple[Digest, str]:
         except Exception:
             pass
     return (seed.build_digest(issue), "seed")
+
+
+def search(q: str) -> tuple[list[dict], str]:
+    """Phase 0 search (CANON R14): currents (name + brief) + grounded timeline events.
+
+    Postgres ILIKE substring match over the published views — no embeddings yet.
+    Phase 1 upgrades to tsvector + BGE-M3 semantic + RRF fusion (api-contract §7).
+    """
+    q = (q or "").strip()
+    if not q:
+        return ([], "db" if (psycopg and _dsn()) else "seed")
+    dsn = _dsn()
+    if psycopg and dsn:
+        try:
+            like = f"%{q}%"
+            hits: list[dict] = []
+            with psycopg.connect(dsn, connect_timeout=2) as conn, conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT current_id, name, color_key, state, brief
+                    FROM current_view
+                    WHERE store='published' AND is_last_known_good
+                      AND (name ILIKE %s OR brief->>'whatsHappening' ILIKE %s OR brief->>'whyItMatters' ILIKE %s)
+                    ORDER BY rank
+                    """,
+                    (like, like, like),
+                )
+                for cid, name, ck, state, brief in cur.fetchall():
+                    hits.append({
+                        "type": "current", "id": cid, "currentId": cid, "title": name,
+                        "snippet": (brief or {}).get("whatsHappening", "")[:140],
+                        "colorKey": ck, "state": state, "date": None, "url": None,
+                    })
+                cur.execute(
+                    """
+                    SELECT cv.current_id, cv.name, cv.color_key, node
+                    FROM current_view cv, jsonb_array_elements(cv.timeline) AS node
+                    WHERE cv.store='published' AND cv.is_last_known_good AND node->>'text' ILIKE %s
+                    ORDER BY node->>'date' DESC
+                    """,
+                    (like,),
+                )
+                for cid, name, ck, node in cur.fetchall():
+                    text = node.get("text", "") or ""
+                    if "보도 집중" in text:  # skip generic (non-grounded) placeholders
+                        continue
+                    srcs = node.get("sources") or []
+                    url = next((s.get("url") for s in srcs if s.get("url")), None)
+                    hits.append({
+                        "type": "event", "id": f"{cid}:{node.get('date')}", "currentId": cid,
+                        "title": text, "snippet": f"{name} · {node.get('date', '')}",
+                        "colorKey": ck, "state": None, "date": node.get("date"), "url": url,
+                    })
+            return (hits, "db")
+        except Exception:
+            pass
+    return (
+        [{"type": "current", "id": m["currentId"], "currentId": m["currentId"], "title": m["name"],
+          "snippet": "", "colorKey": m["currentId"], "state": None, "date": None, "url": None}
+         for m in seed.search(q)],
+        "seed",
+    )
