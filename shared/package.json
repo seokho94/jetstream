@@ -1,0 +1,17 @@
+{
+  "name": "@meridian/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Meridian shared TS types (data-model §2) + design tokens (CANON §3/§14).",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

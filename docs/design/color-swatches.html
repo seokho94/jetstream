@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Meridian — 색상 시안 (State badges & Current hues)</title>
+<style>
+  :root{
+    /* §3 / CANON tokens */
+    --bg:#0E1116; --card:#171C24; --card-alt:#13171D; --border:#2C333D;
+    --ink:#F2F4F7; --secondary:#9BA3AF; --muted:#6B7480;
+    --brand-teal:#34D0BA; --up-green:#6FBF73; --down-red:#D08585;
+    /* momentum state badge hues (reserved) */
+    --s-rising:#F5A524; --s-peaking:#FB7A50; --s-cooling:#7C9CC0; --s-steady:#9BA3AF;
+    --radius:14px;
+    --sans:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans KR",sans-serif;
+    --serif:Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;line-height:1.5;letter-spacing:.1px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px 96px}
+  header.top{position:sticky;top:0;z-index:5;background:rgba(14,17,22,.86);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--border);margin-bottom:8px}
+  header.top .bar{height:3px;background:linear-gradient(90deg,var(--brand-teal),transparent 70%)}
+  header.top .inner{max-width:1080px;margin:0 auto;padding:14px 22px;display:flex;
+    align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.3px}
+  .logo .dot{width:11px;height:11px;border-radius:50%;background:var(--brand-teal);
+    box-shadow:0 0 0 4px rgba(52,208,186,.16)}
+  .logo small{display:block;color:var(--secondary);font-weight:500;font-size:12px;letter-spacing:.2px}
+  .controls{display:flex;gap:8px;align-items:center}
+  button.toggle{font-family:var(--sans);font-size:12.5px;color:var(--ink);background:var(--card);
+    border:1px solid var(--border);padding:8px 12px;border-radius:10px;cursor:pointer}
+  button.toggle[aria-pressed="true"]{border-color:var(--brand-teal);color:var(--brand-teal);
+    box-shadow:inset 0 0 0 1px rgba(52,208,186,.35)}
+  h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:1.4px;color:var(--secondary);
+    margin:46px 0 4px;font-weight:600}
+  p.lead{color:var(--secondary);margin:0 0 18px;font-size:14.5px;max-width:74ch}
+  .grid{display:grid;gap:16px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+  .row-cards{grid-template-columns:repeat(auto-fit,minmax(228px,1fr))}
+
+  /* ---- momentum badge ---- */
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+    padding:5px 11px 5px 9px;border-radius:999px;line-height:1;white-space:nowrap;
+    color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--c) 42%,transparent)}
+  .badge.solid{color:#0E1116;background:var(--c);border-color:transparent;font-weight:700}
+  .badge svg{width:15px;height:15px}
+  .badge .ko{opacity:.85;font-weight:500;font-size:11px;margin-left:2px}
+
+  .badge-hero{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+  .badge-hero .big{transform:scale(1.25);transform-origin:left center;margin:4px 0 8px 4px}
+  .hexline{font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted)}
+  .hexline b{color:var(--ink);font-weight:600}
+
+  /* ---- swatch ---- */
+  .sw{display:flex;align-items:center;gap:12px}
+  .chip{width:46px;height:46px;border-radius:11px;flex:none;border:1px solid rgba(255,255,255,.08)}
+  .sw .meta{min-width:0}
+  .sw .nm{font-weight:600;font-size:14px}
+  .sw .hx{font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--muted)}
+  .flag{display:inline-block;font-size:11px;font-weight:600;color:var(--s-peaking);
+    background:color-mix(in srgb,var(--s-peaking) 14%,transparent);border:1px solid color-mix(in srgb,var(--s-peaking) 40%,transparent);
+    padding:2px 7px;border-radius:6px;margin-left:6px;vertical-align:middle}
+  .ok{color:var(--up-green);background:color-mix(in srgb,var(--up-green) 12%,transparent);
+    border-color:color-mix(in srgb,var(--up-green) 38%,transparent)}
+
+  /* compare table */
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .cmp .col h3{margin:0 0 12px;font-size:13px;letter-spacing:.4px}
+  .cmp .col.before h3{color:var(--s-peaking)}
+  .cmp .col.after h3{color:var(--up-green)}
+
+  /* ---- board preview ---- */
+  .board .brow{display:flex;align-items:center;gap:14px;padding:13px 4px;border-bottom:1px solid var(--border)}
+  .board .brow:last-child{border-bottom:0}
+  .rank{width:18px;text-align:center;color:var(--muted);font:12px ui-monospace,monospace}
+  .tick{width:4px;height:30px;border-radius:3px;flex:none;background:var(--c)}
+  .cname{font-weight:650;font-size:15px;color:var(--c);min-width:0;flex:1;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .spark{flex:none}
+  .board .brow .badge{flex:none}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
+  .note{font-size:12.5px;color:var(--muted);margin-top:8px}
+
+  /* detail header band — "color = layer" */
+  .detail{border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+  .detail .band{padding:16px 16px 14px;background:
+     linear-gradient(180deg,color-mix(in srgb,var(--c) 30%,var(--card)),var(--card));
+     border-bottom:1px solid color-mix(in srgb,var(--c) 35%,var(--border))}
+  .detail .ey{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--c);font-weight:700}
+  .detail .ti{font-size:19px;font-weight:700;margin:4px 0 10px}
+  .detail .body{padding:14px 16px;color:var(--secondary);font-size:13px}
+  .serif{font-family:var(--serif);font-style:italic}
+
+  /* greyscale sim */
+  body.sim .simzone{filter:grayscale(1) contrast(1.05)}
+  .footer{margin-top:54px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:12.5px}
+  code{font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--ink);
+    background:var(--card-alt);padding:1px 6px;border-radius:6px;border:1px solid var(--border)}
+  a{color:var(--brand-teal)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="bar"></div>
+  <div class="inner">
+    <div class="logo"><span class="dot"></span><div>Meridian<small>색상 시안 · State badges & Current hues</small></div></div>
+    <div class="controls">
+      <button class="toggle" id="simBtn" aria-pressed="false">무채색 시뮬레이션</button>
+      <button class="toggle" id="solidBtn" aria-pressed="false">배지 솔리드</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <p class="lead" style="margin-top:22px">
+    다크 “인텔리전스 터미널” 테마(§3 토큰) 위에서 본 4개 모멘텀 상태 배지와, 그와 충돌하던 current 색상의
+    <b>원본(스펙 §3) ↔ 제안(충돌 해소)</b> 비교입니다. current 재배정 헥스는 <b>CANON §14 R11로 확정</b>되었습니다.
+    상단 <b>무채색 시뮬레이션</b>으로 색을 제거해도 아이콘+라벨로 상태가 구분되는지(색 단독 인코딩 금지) 확인하세요.
+  </p>
+
+  <!-- 1. STATE BADGES -->
+  <h2 class="sec">1 · 모멘텀 상태 배지 (4 states · 예약색)</h2>
+  <p class="lead">각 배지는 <b>색 + 아이콘 + 라벨</b>을 항상 함께 씁니다. 이 4색은 <code>color_registry.is_reserved=true</code>로 예약되어 current 색에 쓰지 않습니다.</p>
+  <div class="grid row-cards simzone" id="stateCards"></div>
+
+  <!-- 2. RESERVED -->
+  <h2 class="sec">2 · 예약 색 (시스템 — current 금지)</h2>
+  <p class="lead">상태 배지 4색 + 브랜드 틸(크롬·digest) + 상태 헬퍼(up/down). current hue는 이들과 같을 수 없습니다.</p>
+  <div class="card simzone"><div class="grid row-cards" id="reservedSwatches"></div></div>
+
+  <!-- 3. CURRENT HUES before/after -->
+  <h2 class="sec">3 · Current 색상 — 원본 vs 확정</h2>
+  <p class="lead">스펙 §3의 6색 중 <b>3색이 상태 배지색과 동일</b>(ai-governance=amber=rising, cost-of-living=coral=peaking, middle-east=steel=cooling)하고, <b>energy=teal</b>은 브랜드 틸과 충돌합니다. 제안은 이 4색을 구분되는 hue로 재배정합니다.</p>
+  <div class="card simzone"><div class="cmp">
+    <div class="col before"><h3>원본 (스펙 §3) — ⚠ 충돌 4</h3><div class="grid" id="origSw" style="gap:14px"></div></div>
+    <div class="col after"><h3>확정 (해소) — ✓</h3><div class="grid" id="propSw" style="gap:14px"></div></div>
+  </div></div>
+
+  <!-- 4. BOARD PREVIEW before/after -->
+  <h2 class="sec">4 · 보드 미리보기 — 충돌이 실제로 보이는가</h2>
+  <p class="lead">랭킹 행은 <b>current 이름(=그 색)</b> 옆에 <b>모멘텀 배지</b>가 옵니다. 원본에서는 이름색과 배지색이 겹쳐(예: AI governance 이름=amber, Rising 배지=amber) 구분이 흐려집니다. 제안에서는 분리됩니다.</p>
+  <div class="cmp">
+    <div class="card board simzone"><h3 style="margin:2px 0 6px;color:var(--s-peaking);font-size:13px">원본 (충돌)</h3><div id="boardOrig"></div></div>
+    <div class="card board simzone"><h3 style="margin:2px 0 6px;color:var(--up-green);font-size:13px">확정 (해소)</h3><div id="boardProp"></div></div>
+  </div>
+  <div class="legend">
+    <span>● 이름색 = current hue</span><span>▮ 좌측 틱 = current hue</span><span>배지 = 모멘텀 상태</span>
+  </div>
+
+  <!-- 5. DETAIL HEADERS — color = layer -->
+  <h2 class="sec">5 · 상세 화면 헤더 (color = layer)</h2>
+  <p class="lead">각 current 상세는 자기 hue로 테마링됩니다. 제안 색으로 헤더 밴드 + 상태 배지를 함께 보았을 때의 모습입니다.</p>
+  <div class="grid row-cards simzone" id="detailCards"></div>
+
+  <div class="footer">
+    <p><b>확정 / 대기:</b> 4개 상태 배지색은 스펙 §3·CANON §2의 LOCK 값입니다(<code>#F5A524 / #FB7A50 / #7C9CC0 / #9BA3AF</code>).
+    current 재배정 헥스는 <b>확정(CANON §14 R11)</b> — ai-governance #C46BD8 · cost-of-living #E86A8E · energy #9CCB3B · middle-east #5C6BC0. 신규 current 배정 시에만 ΔE·WCAG 비텍스트 3:1·colorblind QA 게이트를 적용합니다.</p>
+    <p>관련: <a href="CANON.md">CANON.md §14 R11</a> · <a href="0001-foundational-decisions.md">0001 ADR 0007</a> · <a href="client-architecture.md">client-architecture.md</a></p>
+  </div>
+</div>
+
+<script>
+const ICON = {
+  up:'<path d="M3 17l6 -6l4 4l8 -8"/><path d="M14 7l7 0l0 7"/>',
+  activity:'<path d="M3 12h4l3 8l4 -16l3 8h4"/>',
+  down:'<path d="M3 7l6 6l4 -4l8 8"/><path d="M14 17l7 0l0 -7"/>',
+  minus:'<path d="M5 12l14 0"/>'
+};
+const svg = t => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[t]}</svg>`;
+
+const STATES = [
+  {key:'rising',  en:'Rising',  ko:'상승', hex:'#F5A524', icon:'up'},
+  {key:'peaking', en:'Peaking', ko:'정점', hex:'#FB7A50', icon:'activity'},
+  {key:'cooling', en:'Cooling', ko:'냉각', hex:'#7C9CC0', icon:'down'},
+  {key:'steady',  en:'Steady',  ko:'안정', hex:'#9BA3AF', icon:'minus'},
+];
+const stMap = Object.fromEntries(STATES.map(s=>[s.key,s]));
+
+const RESERVED = [
+  {nm:'rising (state)',  hx:'#F5A524'},{nm:'peaking (state)', hx:'#FB7A50'},
+  {nm:'cooling (state)', hx:'#7C9CC0'},{nm:'steady (state)',  hx:'#9BA3AF'},
+  {nm:'brand teal (chrome/digest)', hx:'#34D0BA'},
+  {nm:'up-green (helper)', hx:'#6FBF73'},{nm:'down-red (helper)', hx:'#D08585'},
+];
+
+// current : original spec §3 vs proposed (collision-resolved)
+const CURRENTS = [
+  {nm:'AI governance', key:'ai-governance', orig:'#F5A524', prop:'#C46BD8', state:'rising',  clash:'rising amber'},
+  {nm:'Cost of living',key:'cost-of-living',orig:'#FB7A50', prop:'#E86A8E', state:'peaking', clash:'peaking coral'},
+  {nm:'Energy',        key:'energy',        orig:'#34D0BA', prop:'#9CCB3B', state:'rising',  clash:'brand teal'},
+  {nm:'Middle East',   key:'middle-east',   orig:'#7C9CC0', prop:'#5C6BC0', state:'cooling', clash:'cooling steel'},
+  {nm:'China',         key:'china',         orig:'#4EA8DE', prop:'#4EA8DE', state:'steady',  clash:null},
+  {nm:'Climate',       key:'climate',       orig:'#8B7FE8', prop:'#8B7FE8', state:'rising',  clash:null},
+];
+// extra candidate hues for future currents (board needs 10–15)
+const FUTURE = ['#3FB6C9','#3DBE7A','#6FA8FF','#D85FA8','#7FB24A'];
+
+let solid = false;
+function badge(stateKey){
+  const s = stMap[stateKey];
+  return `<span class="badge${solid?' solid':''}" style="--c:${s.hex}">${svg(s.icon)}${s.en}<span class="ko">${s.ko}</span></span>`;
+}
+function spark(seed,hex){
+  // deterministic pseudo series
+  let v=[]; let x=seed*7%13/13;
+  for(let i=0;i<14;i++){ x=(Math.sin(seed*1.7+i*0.9)+1)/2*0.7+0.15+i*0.012; v.push(x); }
+  const w=62,h=20,max=Math.max(...v),min=Math.min(...v);
+  const pts=v.map((p,i)=>`${(i/(v.length-1)*w).toFixed(1)},${(h-(p-min)/(max-min+1e-6)*h).toFixed(1)}`).join(' ');
+  return `<svg class="spark" width="${w}" height="${h}"><polyline points="${pts}" fill="none" stroke="${hex}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/></svg>`;
+}
+
+function render(){
+  // 1 state cards
+  document.getElementById('stateCards').innerHTML = STATES.map(s=>`
+    <div class="card badge-hero">
+      <div class="big"><span class="badge${solid?' solid':''}" style="--c:${s.hex}">${svg(s.icon)}${s.en}<span class="ko">${s.ko}</span></span></div>
+      <div class="hexline"><b>${s.en}</b> · ${s.ko} · ti-${s.icon==='up'?'trending-up':s.icon==='down'?'trending-down':s.icon}</div>
+      <div class="hexline"><b>${s.hex.toUpperCase()}</b></div>
+    </div>`).join('');
+
+  // 2 reserved
+  document.getElementById('reservedSwatches').innerHTML = RESERVED.map(r=>`
+    <div class="sw"><div class="chip" style="background:${r.hx}"></div>
+      <div class="meta"><div class="nm">${r.nm}</div><div class="hx">${r.hx.toUpperCase()}</div></div></div>`).join('');
+
+  // 3 current swatches before/after
+  document.getElementById('origSw').innerHTML = CURRENTS.map(c=>`
+    <div class="sw"><div class="chip" style="background:${c.orig}"></div>
+      <div class="meta"><div class="nm">${c.nm}${c.clash?`<span class="flag">⚠ = ${c.clash}</span>`:''}</div>
+      <div class="hx">${c.orig.toUpperCase()}</div></div></div>`).join('');
+  document.getElementById('propSw').innerHTML = CURRENTS.map(c=>{
+    const changed = c.orig.toLowerCase()!==c.prop.toLowerCase();
+    return `<div class="sw"><div class="chip" style="background:${c.prop}"></div>
+      <div class="meta"><div class="nm">${c.nm}${changed?`<span class="flag ok">재배정</span>`:`<span class="flag ok">유지</span>`}</div>
+      <div class="hx">${c.prop.toUpperCase()}</div></div></div>`;}).join('')
+    + `<div class="note">예비 후보(미래 current용): ${FUTURE.map(h=>`<span style="display:inline-block;width:13px;height:13px;border-radius:3px;background:${h};vertical-align:middle;margin:0 2px"></span><code>${h}</code>`).join(' ')}</div>`;
+
+  // 4 board previews
+  const boardRow = (c,useProp,i)=>{
+    const hex = useProp?c.prop:c.orig;
+    return `<div class="brow" style="--c:${hex}">
+      <span class="rank">${i+1}</span><span class="tick"></span>
+      <span class="cname">${c.nm}</span>${spark(i+1,hex)}${badge(c.state)}</div>`;
+  };
+  const order=[0,1,2,3,5,4]; // illustrative ranking
+  document.getElementById('boardOrig').innerHTML = order.map((idx,i)=>boardRow(CURRENTS[idx],false,i)).join('');
+  document.getElementById('boardProp').innerHTML = order.map((idx,i)=>boardRow(CURRENTS[idx],true,i)).join('');
+
+  // 5 detail headers (proposed)
+  document.getElementById('detailCards').innerHTML = CURRENTS.slice(0,4).map(c=>`
+    <div class="detail" style="--c:${c.prop}">
+      <div class="band"><div class="ey">${c.key}</div><div class="ti">${c.nm}</div>${badge(c.state)}</div>
+      <div class="body">상세 화면은 이 current의 hue로 테마링됩니다. 배지(<b>${stMap[c.state].en}</b>)는 hue와 명확히 구분됩니다.</div>
+    </div>`).join('');
+}
+render();
+
+document.getElementById('simBtn').addEventListener('click',e=>{
+  const on=document.body.classList.toggle('sim');
+  e.currentTarget.setAttribute('aria-pressed',on);
+});
+document.getElementById('solidBtn').addEventListener('click',e=>{
+  solid=!solid; e.currentTarget.setAttribute('aria-pressed',solid); render();
+});
+</script>
+</body>
+</html>
