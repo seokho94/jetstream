@@ -4,6 +4,7 @@ import { hueFor } from "@jetstream/shared";
 import { vars } from "@/lib/style";
 import { MomentumBadge } from "@/components/MomentumBadge";
 import { AttentionArc } from "@/components/charts/AttentionArc";
+import { WatchToggle } from "@/components/WatchToggle";
 
 const COVER_FILLS = [
   "var(--c)",
@@ -25,8 +26,9 @@ export default async function CurrentPage({ params }: { params: { id: string } }
       </div>
 
       <AttentionArc points={cv.arc} color={c} />
+      <p className="micro">아크 위 번호 = 아래 타임라인의 같은 번호 사건</p>
 
-      <h3>Brief</h3>
+      <h3>브리핑</h3>
       <p className="body">
         <b>What?</b> — {cv.brief.whatsHappening}
       </p>
@@ -34,17 +36,24 @@ export default async function CurrentPage({ params }: { params: { id: string } }
         <b>Why?</b> — {cv.brief.whyItMatters}
       </p>
       {cv.brief.citations.length > 0 && (
-        <div className="cites">
-          <span className="cites-label">근거</span>
-          {Array.from(new Map(cv.brief.citations.map((c) => [c.url || c.outlet, c])).values()).map((c, i) => (
-            <a key={i} className="cite" href={c.url || "#"} target="_blank" rel="noreferrer" title={c.text}>
-              {c.outlet || "source"}
-            </a>
-          ))}
+        <div className="srcs">
+          <div className="srcs-head">
+            출처 {new Set(cv.brief.citations.map((c) => c.url || c.outlet)).size}곳 · 인용 {cv.brief.citations.length}건
+          </div>
+          <ul>
+            {cv.brief.citations.map((c, i) => (
+              <li key={i}>
+                <a className="src-outlet" href={c.url || "#"} target="_blank" rel="noreferrer">
+                  {c.outlet || "source"} ↗
+                </a>
+                {c.text && <span className="src-quote">“{c.text.slice(0, 140)}”</span>}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
-      <h3>Timeline</h3>
+      <h3>타임라인</h3>
       <ol className="timeline">
         {cv.timeline.map((n) => (
           <li key={n.node} className={n.isLatest ? "latest" : ""}>
@@ -56,7 +65,8 @@ export default async function CurrentPage({ params }: { params: { id: string } }
         ))}
       </ol>
 
-      <h3>How it&apos;s being covered</h3>
+      <h3>어떻게 다뤄지나</h3>
+      <p className="micro">지역별 보도 분포 — 특정 지역에 치우치지 않는지 보여줍니다</p>
       <div className="coverage">
         {cv.coverage.buckets.map((b, i) => (
           <span key={b.label} style={{ width: `${b.pct}%`, background: COVER_FILLS[i % COVER_FILLS.length] }} />
@@ -70,9 +80,8 @@ export default async function CurrentPage({ params }: { params: { id: string } }
         ))}
       </div>
 
-      <div className="watch">
-        <span>이 흐름이 움직일 때 알림</span>
-        <span className="muted">Watch ○</span>
+      <div style={{ margin: "22px 18px" }}>
+        <WatchToggle currentId={cv.currentId} />
       </div>
     </div>
   );

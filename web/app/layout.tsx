@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { TabBar } from "@/components/TabBar";
 
 export const metadata: Metadata = {
   title: "Jetstream — the world, zoomed out",
@@ -12,12 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="app">
           {children}
-          <nav className="tabbar">
-            <a href="/board" className="active">Currents</a>
-            <a href="/board">Following</a>
-            <a href="/digest/12">Digest</a>
-            <a href="/board">Search</a>
-          </nav>
+          <TabBar />
         </div>
       </body>
     </html>

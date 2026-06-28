@@ -17,6 +17,9 @@ export default async function DigestPage({ params }: { params: { issue: string }
 
       <p className="lede">{d.lede}</p>
 
+      <p className="kicker" style={{ padding: "6px 18px 0" }}>
+        이번 주 순위 변화 (지난주 → 이번주)
+      </p>
       <div className="card">
         <SlopeChart rows={d.reshuffle} />
       </div>
@@ -60,15 +63,15 @@ export default async function DigestPage({ params }: { params: { issue: string }
       <div className="stats">
         <div className="stat">
           <b>{d.stats.currentsTracked}</b>
-          <span>currents</span>
+          <span>추적 흐름</span>
         </div>
         <div className="stat">
           <b>{d.stats.newThreads}</b>
-          <span>new threads</span>
+          <span>새 흐름</span>
         </div>
         <div className="stat">
           <b>{d.stats.storiesScanned.toLocaleString()}</b>
-          <span>scanned</span>
+          <span>스캔 기사</span>
         </div>
       </div>
     </div>
