@@ -31,7 +31,8 @@ python -m scripts.seed_sources          # populate source_registry (67 curated o
 python -m scripts.build_board           # GDELT → momentum_point / board_view / current_view / digest
 
 # Periodic refresh (Windows Scheduled Task — run yourself; installs standing execution):
-#   schtasks /create /tn MeridianRefresh /tr "powershell -NoProfile -ExecutionPolicy Bypass -File C:\git\jetstream\scriptsefresh.ps1" /sc DAILY /st 06:00 /f
+#   schtasks /create /tn MeridianRefresh /tr "powershell -NoProfile -ExecutionPolicy Bypass -File C:\git\jetstream\scripts\refresh.ps1" /sc DAILY /st 06:00 /f
+efresh.ps1" /sc DAILY /st 06:00 /f
 #   schtasks /delete /tn MeridianRefresh /f     # remove
 
 # Python lint / tests (after `pip install -e ".[dev]"`)
