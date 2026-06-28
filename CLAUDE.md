@@ -29,6 +29,8 @@ export DATABASE_URL=postgresql://meridian:meridian@localhost:5432/meridian
 # Live data: seed sources, then build board/detail/digest from GDELT
 python -m scripts.seed_sources          # populate source_registry (67 curated outlets)
 python -m scripts.build_board           # GDELT → momentum_point / board_view / current_view / digest
+# Optional: set ANTHROPIC_API_KEY to enable grounded LLM briefs (Claude Citations);
+#   build_board then crawls whitelisted bodies + grounds brief/citations, else uses the computed brief.
 
 # Periodic refresh (Windows Scheduled Task — run yourself; installs standing execution):
 #   schtasks /create /tn JetstreamRefresh /tr "powershell -NoProfile -ExecutionPolicy Bypass -File C:\git\jetstream\scripts\refresh.ps1" /sc DAILY /st 06:00 /f

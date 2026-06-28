@@ -22,6 +22,9 @@ from psycopg.types.json import Json
 from pipeline.cluster.rules import CURRENT_QUERIES
 from pipeline.ingest.gdelt import source_facets, volume_timeline
 from pipeline.momentum import rank, signals_for
+from pipeline.normalize.crawl import crawl
+from pipeline.synthesis.synthesize import available as synth_available
+from pipeline.synthesis.synthesize import synthesize_brief
 
 DSN = os.environ.get("DATABASE_URL", "postgresql://meridian:meridian@localhost:5432/meridian")
 STATE_KO = {"rising": "상승", "peaking": "정점", "cooling": "냉각", "steady": "안정"}
@@ -248,7 +251,21 @@ def publish(results: list[dict]) -> None:
             arc, peak_idx = _arc(series)
             timeline = _timeline(series, peak_idx, facets.get("top_outlets"))
             coverage = _coverage(facets.get("regions", {}))
-            brief = _brief(next(it["name"] for it in items if it["id"] == cid), sig, facets)
+            cname = next(it["name"] for it in items if it["id"] == cid)
+            brief = _brief(cname, sig, facets)
+            # Grounded LLM brief (key-gated): crawl representative bodies → Claude Citations.
+            # Skipped entirely without ANTHROPIC_API_KEY, so no crawling happens then.
+            if synth_available():
+                docs = []
+                for a in (facets.get("articles") or [])[:4]:
+                    body = crawl(a.get("url", ""))
+                    if body:
+                        docs.append({"title": a.get("title", ""), "url": a.get("url", ""),
+                                     "outlet": a.get("outlet", ""), "body": body["body"]})
+                grounded = synthesize_brief(cname, docs)
+                if grounded:
+                    brief = grounded
+                    print(f"    {cid}: grounded brief ({len(grounded['citations'])} citations)")
             cv_etag = "sha-" + hashlib.sha1(f"{cid}{board_etag}".encode()).hexdigest()[:12]
             cur.execute(
                 """

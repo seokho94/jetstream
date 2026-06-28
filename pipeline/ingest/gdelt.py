@@ -225,11 +225,19 @@ def source_facets(query: str, timespan: str = "1w", maxrecords: int = 250) -> di
             countries.add(sc)
             reg = COUNTRY_REGION.get(sc, "Other")
             regions[reg] = regions.get(reg, 0) + 1
+    wl_articles = []
+    for a in arts:
+        dom = registrable_domain(a.get("domain", ""))
+        if dom in WHITELIST and a.get("url"):
+            wl_articles.append({"url": a["url"], "title": a.get("title", "").strip(), "outlet": dom})
+        if len(wl_articles) >= 6:
+            break
     wl = {d: c for d, c in outlets.items() if d in WHITELIST}
     ranked_outlets = sorted((wl or outlets).items(), key=lambda kv: kv[1], reverse=True)
     top_outlets = [d for d, _ in ranked_outlets[:5]]
     return {"outlets": len(outlets), "countries": len(countries), "regions": regions,
-            "top_outlets": top_outlets, "top_outlet": top_outlets[0] if top_outlets else None, "n": len(arts)}
+            "top_outlets": top_outlets, "top_outlet": top_outlets[0] if top_outlets else None,
+            "n": len(arts), "articles": wl_articles}
 
 
 def source_breadth(query: str, timespan: str = "1w", maxrecords: int = 250) -> tuple[int, int]:
