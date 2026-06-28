@@ -28,10 +28,10 @@ export default async function CurrentPage({ params }: { params: { id: string } }
 
       <h3>Brief</h3>
       <p className="body">
-        <b>무슨 일</b> — {cv.brief.whatsHappening}
+        <b>What?</b> — {cv.brief.whatsHappening}
       </p>
       <p className="body">
-        <b>왜 중요</b> — {cv.brief.whyItMatters}
+        <b>Why?</b> — {cv.brief.whyItMatters}
       </p>
       {cv.brief.citations.length > 0 && (
         <div className="cites">
