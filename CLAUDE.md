@@ -21,9 +21,10 @@ npm run typecheck      # tsc --noEmit across shared + web
 pip install -e .
 uvicorn api.main:app --reload
 
-# Database (Postgres 15+ with pgvector + pgcrypto)
-psql "$DATABASE_URL" -f pipeline/db/schema.sql
-python -m scripts.seed_phase0      # vertical + ~6 currents
+# Database (Postgres + pgvector). schema + seed auto-apply on first `up`.
+docker compose up -d
+export DATABASE_URL=postgresql://meridian:meridian@localhost:5432/meridian
+# API reads DB when DATABASE_URL is reachable (else seed); check: curl -i /v1/board | grep X-Data-Source
 
 # Python lint / tests (after `pip install -e ".[dev]"`)
 ruff check pipeline api scripts

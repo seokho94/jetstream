@@ -1,0 +1,29 @@
+# Phase 0 Postgres (with pgvector). On first boot, Docker auto-applies the schema
+# then the seed via /docker-entrypoint-initdb.d (alphabetical order).
+#
+#   docker compose up -d          # start db (auto: schema + seed on first run)
+#   DATABASE_URL=postgresql://meridian:meridian@localhost:5432/meridian \
+#     uvicorn api.main:app --reload     # API now reads the DB (X-Data-Source: db)
+#   docker compose down -v        # stop + wipe volume (re-init on next up)
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: meridian-pg
+    environment:
+      POSTGRES_USER: meridian
+      POSTGRES_PASSWORD: meridian
+      POSTGRES_DB: meridian
+    ports:
+      - "5432:5432"
+    volumes:
+      - meridian_pg:/var/lib/postgresql/data
+      - ./pipeline/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./pipeline/db/seed_phase0.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meridian -d meridian"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  meridian_pg:

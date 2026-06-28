@@ -1,12 +1,12 @@
 """FastAPI app. Run: uvicorn api.main:app --reload  (http://localhost:8000)
 
-Endpoints follow docs/design/api-contract.md (REST + per-view BFF). Phase 0
-serves seed data; caching/ISR/ETag semantics are stubbed via headers.
+Endpoints follow docs/design/api-contract.md (REST + per-view BFF). Reads from
+Postgres when DATABASE_URL is reachable (X-Data-Source: db), else seed (: seed).
 """
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import seed
+from . import repo, seed
 from .schemas import BoardView, CurrentView, Digest
 
 app = FastAPI(title="Meridian API", version="0.0.0")
@@ -20,15 +20,23 @@ app.add_middleware(
 
 @app.get("/v1/board", response_model=BoardView)
 def get_board(response: Response) -> BoardView:
-    board = seed.build_board()
+    board, source = repo.get_board()
+    response.headers["X-Data-Source"] = source
     response.headers["ETag"] = board.etag
     response.headers["Cache-Control"] = "public, max-age=60"  # POLL_INTERVAL
     return board
 
 
+@app.get("/v1/currents")
+def list_currents(response: Response) -> dict:
+    currents, source = repo.list_currents()
+    response.headers["X-Data-Source"] = source
+    return {"source": source, "currents": currents}
+
+
 @app.get("/v1/currents/{current_id}", response_model=CurrentView)
 def get_current(current_id: str, response: Response) -> CurrentView:
-    cv = seed.build_current(current_id)
+    cv = seed.build_current(current_id)  # published views are seed-backed in Phase 0
     if cv is None:
         raise HTTPException(status_code=404, detail="current not found")
     response.headers["ETag"] = cv.etag
@@ -47,4 +55,4 @@ def get_search(q: str = "") -> dict:
 
 @app.get("/healthz")
 def healthz() -> dict:
-    return {"ok": True}
+    return {"ok": True, "db": repo.db_available()}

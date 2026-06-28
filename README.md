@@ -23,18 +23,21 @@ The web client renders from **seed data**, so you can see the three screens with
 npm install
 npm run dev            # http://localhost:3000  → /board
 
-# Serving API (stub returns seed data)
+# Serving API — reads DB when DATABASE_URL is set, else seed
 pip install -e .
 uvicorn api.main:app --reload    # http://localhost:8000/v1/board
 
-# Database schema (needs Postgres 15+ with pgvector & pgcrypto)
-createdb meridian
-psql "$DATABASE_URL" -f pipeline/db/schema.sql
-python -m scripts.seed_phase0       # seeds vertical + ~6 currents
+# Database (Postgres + pgvector via Docker — schema + seed auto-applied on first boot)
+docker compose up -d
+export DATABASE_URL=postgresql://meridian:meridian@localhost:5432/meridian
+uvicorn api.main:app --reload       # API now reads the DB → header X-Data-Source: db
+# No Docker? apply to any Postgres 15+ (pgvector + pgcrypto):
+#   psql "$DATABASE_URL" -f pipeline/db/schema.sql
+#   psql "$DATABASE_URL" -f pipeline/db/seed_phase0.sql   # or: python -m scripts.seed_phase0
 ```
 
 See [`docs/design/phase-0-plan.md`](docs/design/phase-0-plan.md) for the sequenced backlog and go/no-go gates.
 
 ## Status
 
-Greenfield scaffold: structure + schema + types + tokens + seed-backed screens are in place. The pipeline modules are package skeletons (Phase 0/1 work). No external services are called yet.
+Phase 0: the monorepo builds and runs end to end (web → serving API → seed, or Postgres when `DATABASE_URL` is reachable). A real GDELT collector (`pipeline/ingest/gdelt.py`) and the Postgres path (`docker compose up`, schema + seed auto-applied) are in place. Bodies, embeddings, clustering, and LLM synthesis remain the Phase 0/1 backlog.
