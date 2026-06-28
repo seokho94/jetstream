@@ -1,4 +1,4 @@
--- Meridian — Phase 0 schema (single source of truth: docs/design/data-model.md §3)
+-- Jetstream — Phase 0 schema (single source of truth: docs/design/data-model.md §3)
 -- Apply: psql "$DATABASE_URL" -f pipeline/db/schema.sql
 -- Requires: PostgreSQL 15+ with pgvector & pgcrypto extensions.
 

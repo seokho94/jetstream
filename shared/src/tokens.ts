@@ -1,4 +1,4 @@
-// Meridian design tokens — CANON §1–§3 + §14 R11 (confirmed colors).
+// Jetstream design tokens — CANON §1–§3 + §14 R11 (confirmed colors).
 // Keep web/app/globals.css in sync with these values.
 import type { MomentumState } from "./types";
 

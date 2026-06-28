@@ -1,8 +1,8 @@
-# Meridian
+# Jetstream
 
 > **The world, zoomed out.** A calm, intelligent way to see where global news is actually heading — not more headlines, but the *currents* underneath and which way they're moving.
 
-This repo is the **Phase 0** scaffold. The product brief is [`docs/meridian-spec.md`](docs/meridian-spec.md); the **authoritative engineering design** lives in [`docs/design/`](docs/design/README.md) (start at `CANON.md`). On conflict, the design docs win over the spec.
+This repo is the **Phase 0** scaffold. The product brief is [`docs/jetstream-spec.md`](docs/jetstream-spec.md); the **authoritative engineering design** lives in [`docs/design/`](docs/design/README.md) (start at `CANON.md`). On conflict, the design docs win over the spec.
 
 ## Layout
 
@@ -10,7 +10,7 @@ This repo is the **Phase 0** scaffold. The product brief is [`docs/meridian-spec
 pipeline/   Python data engine (ingest · normalize · cluster · momentum · synthesis · review · db)
 api/        FastAPI serving layer — reads the published store (Phase 0: returns seed data)
 web/        Next.js client — the board / current / digest (reads seed in Phase 0)
-shared/     @meridian/shared — TS types (data-model §2) + design tokens (confirmed colors)
+shared/     @jetstream/shared — TS types (data-model §2) + design tokens (confirmed colors)
 docs/       spec + design docs + color mockup
 ```
 

@@ -1,4 +1,4 @@
-import { hueFor } from "@meridian/shared";
+import { hueFor } from "@jetstream/shared";
 
 interface ReshuffleRow {
   currentId: string;

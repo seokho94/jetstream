@@ -1,4 +1,4 @@
-import { momentum, type MomentumState } from "@meridian/shared";
+import { momentum, type MomentumState } from "@jetstream/shared";
 import { vars } from "@/lib/style";
 
 // Tabler outline icon paths (inline so the badge renders offline).

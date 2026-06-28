@@ -1,4 +1,4 @@
-CANON — Meridian Phase 0 확정값 (하위 문서는 이 이름·값·상수를 그대로 재사용한다. 충돌 시 canon이 이긴다.)
+CANON — Jetstream Phase 0 확정값 (하위 문서는 이 이름·값·상수를 그대로 재사용한다. 충돌 시 canon이 이긴다.)
 
 ## 0. 적용 범위
 - Phase 0: vertical 1개(`geopolitics`), 수동 큐레이션 current ~10개, 8주 백필. 본 canon 전체가 구속력.

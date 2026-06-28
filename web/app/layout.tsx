@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Meridian — the world, zoomed out",
+  title: "Jetstream — the world, zoomed out",
   description: "The 10–15 macro currents beneath global news, and which way they're moving.",
 };
 

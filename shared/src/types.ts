@@ -1,4 +1,4 @@
-// Meridian data model — mirrors docs/design/data-model.md §2 (DDL-aligned).
+// Jetstream data model — mirrors docs/design/data-model.md §2 (DDL-aligned).
 // On conflict, docs/design/CANON.md §14 wins.
 
 // ── shared enums (1:1 with DDL) ──

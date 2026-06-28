@@ -1,6 +1,6 @@
-# Meridian periodic refresh (Phase 0 orchestration).
+# Jetstream periodic refresh (Phase 0 orchestration).
 # Ensures the Postgres container is up, then rebuilds board/detail/digest from GDELT.
-# Registered as a Windows Scheduled Task "MeridianRefresh" (see CLAUDE.md). Logs to refresh.log.
+# Registered as a Windows Scheduled Task "JetstreamRefresh" (see CLAUDE.md). Logs to refresh.log.
 $ErrorActionPreference = "Continue"
 $env:PATH = "C:\Program Files\Docker\Docker\resources\bin;" + $env:PATH
 $repo = Split-Path -Parent $PSScriptRoot

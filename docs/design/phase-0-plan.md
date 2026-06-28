@@ -1,4 +1,4 @@
-# Meridian — `phase-0-plan.md`
+# Jetstream — `phase-0-plan.md`
 
 > **⚠️ 검수 반영(v2):** [CANON](CANON.md) **§14**로 갱신 — 충돌 시 §14 최우선. 적용: **R6**(Phase 0=volume+persistence만, spread·accel `z=0`, 보수적 분류기, peaking 연기 — momentum-engine §9/스펙 §8과 일치). 추적(Phase 1+): **R11**(색 거버넌스)·**R12**(로케일)·**R13**(watch 배선).
 
@@ -78,7 +78,7 @@
 스펙 §7 트리를 canon 결정(BFF·2-store·결정적 coverage·shared types)에 맞게 조정. 루트 디렉터리 4개(`pipeline`/`api`/`web`/`shared`) 유지, 내부를 canon 산출물에 정렬.
 
 ```
-meridian/
+jetstream/
   pipeline/                      # Python 3.12 데이터 엔진 (cron 워커)
     ingest/
       gdelt.py                   # GDELT events/mentions 풀, watermark 기반 증분

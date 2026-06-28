@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getCurrent } from "@/lib/api";
-import { hueFor } from "@meridian/shared";
+import { hueFor } from "@jetstream/shared";
 import { vars } from "@/lib/style";
 import { MomentumBadge } from "@/components/MomentumBadge";
 import { AttentionArc } from "@/components/charts/AttentionArc";

@@ -1,17 +1,17 @@
 {
-  "name": "meridian",
+  "name": "jetstream",
   "private": true,
   "version": "0.0.0",
-  "description": "Meridian — the world, zoomed out. Phase 0 monorepo (web + shared; pipeline + api are Python).",
+  "description": "Jetstream — the world, zoomed out. Phase 0 monorepo (web + shared; pipeline + api are Python).",
   "workspaces": [
     "shared",
     "web"
   ],
   "scripts": {
-    "dev": "npm --workspace @meridian/web run dev",
-    "build": "npm --workspace @meridian/web run build",
-    "start": "npm --workspace @meridian/web run start",
-    "lint": "npm --workspace @meridian/web run lint",
-    "typecheck": "npm --workspace @meridian/shared run typecheck && npm --workspace @meridian/web run typecheck"
+    "dev": "npm --workspace @jetstream/web run dev",
+    "build": "npm --workspace @jetstream/web run build",
+    "start": "npm --workspace @jetstream/web run start",
+    "lint": "npm --workspace @jetstream/web run lint",
+    "typecheck": "npm --workspace @jetstream/shared run typecheck && npm --workspace @jetstream/web run typecheck"
   }
 }

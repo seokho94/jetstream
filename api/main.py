@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import repo, seed
 from .schemas import BoardView, CurrentView, Digest
 
-app = FastAPI(title="Meridian API", version="0.0.0")
+app = FastAPI(title="Jetstream API", version="0.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Phase 0 dev; tighten in deploy.

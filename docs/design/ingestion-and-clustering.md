@@ -1,4 +1,4 @@
-# Ingestion & Clustering — Meridian Data Pipeline
+# Ingestion & Clustering — Jetstream Data Pipeline
 
 > **⚠️ 검수 반영(v2):** [CANON](CANON.md) **§14**로 갱신 — 충돌 시 §14 최우선. 적용: **R5**(전용 ENUM `license_tier {full,snippet,metadata}`를 `source_registry`·`article` 양쪽에; `source_tier` 재사용 금지, `noindex`→`metadata`).
 
@@ -40,7 +40,7 @@
 
 ### 1.1 GDELT 제품 선택
 
-| 제품 | 용도 | Meridian에서의 역할 | 채택 |
+| 제품 | 용도 | Jetstream에서의 역할 | 채택 |
 |------|------|---------------------|------|
 | **GDELT DOC 2.0 API** | 도메인/언어/시간 필터 기사 검색, `timespan`/`sourcecountry`/`domain` 파라미터 | Phase 0 1차 소스. URL·published_at·언어·도메인·tone 시드 확보 | **채택(Phase 0 primary)** |
 | **GDELT GKG 2.1** (`*.gkg.csv` 15분 파일) | 테마(`V2THEMES`/`THEMES`), 엔티티(`V2PERSONS`/`V2ORGANIZATIONS`), 지역(`V2LOCATIONS`), `V2TONE` | **버티컬 theme 필터의 권위 소스** + countries/tone 보강. theme = vertical 스코핑 AND 조건 | **채택(theme/geo/tone)** |

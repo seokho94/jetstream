@@ -2,7 +2,7 @@
 
 > **⚠️ 검수 반영(v2):** 본 문서는 [CANON](CANON.md) **§14 RESOLUTIONS**로 갱신됨 — 충돌 시 §14 최우선. 적용: **R1**(`current_status={active,merged,dormant}` ↔ 리뷰 상태머신 `review_state` 분리) · **R2**(`CurrentView.arc`=평탄 `ArcPoint[]`) · **R4**(`arc.value`=정규화 0..1, `momentum_point.volume`=raw) · **R5**(전용 ENUM `license_tier {full,snippet,metadata}`) · **R11**(`color_registry` 상태배지 4색 `is_reserved` 예약·충돌 hue 재배정) · **R12**(발행 뷰에 `lang` 컬럼·PK 포함).
 
-> **목적:** §6의 모든 갭을 해소한 Meridian 데이터 모델(TS 인터페이스 + Postgres DDL, schema.sql 수준). 모든 이름·타입·임계는 `canon`과 동일하며 충돌 시 canon이 이긴다.
+> **목적:** §6의 모든 갭을 해소한 Jetstream 데이터 모델(TS 인터페이스 + Postgres DDL, schema.sql 수준). 모든 이름·타입·임계는 `canon`과 동일하며 충돌 시 canon이 이긴다.
 > **적용 범위:** Phase 0(geopolitics·수동 current·8주 백필)에 즉시 적용. Phase 1(2버티컬·자동화)·Phase 2(자동 split/merge·확장)는 컬럼/임계 **추가만** 허용(의미 변경 금지).
 > **스토리지:** 단일 Postgres + `pgvector`(임베딩·검색) + `momentum_point` 시간버킷 테이블. `article`는 월 RANGE 파티셔닝, 본문은 `license_tier`/`purge_after`로 수명 관리.
 

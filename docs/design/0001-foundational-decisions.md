@@ -1,6 +1,6 @@
 # 0001 — 기반 설계 결정
 
-> **목적:** Meridian Phase 0 착수에 필요한 기반(blocker) 결정을 ADR로 확정한다. 본 문서의 값은 `canon`과 동일하며, 하위 설계 문서는 이를 재발명 없이 그대로 따른다.
+> **목적:** Jetstream Phase 0 착수에 필요한 기반(blocker) 결정을 ADR로 확정한다. 본 문서의 값은 `canon`과 동일하며, 하위 설계 문서는 이를 재발명 없이 그대로 따른다.
 > **적용 범위:** Phase 0(geopolitics 1버티컬·수동 current ~10·8주 백필)에 구속력. Phase 1(2버티컬·자동화)·Phase 2(자동 split/merge·확장)는 상위 호환으로 승계한다.
 > **상태:** Accepted (2026-06-28).
 

@@ -1,5 +1,5 @@
 import { getBoard } from "@/lib/api";
-import { hueFor } from "@meridian/shared";
+import { hueFor } from "@jetstream/shared";
 import { vars } from "@/lib/style";
 import { MomentumBadge } from "@/components/MomentumBadge";
 import { Sparkline } from "@/components/charts/Sparkline";
@@ -12,7 +12,7 @@ export default async function BoardPage() {
       <header className="appbar">
         <div className="brand">
           <span className="dot" />
-          Meridian
+          Jetstream
         </div>
         <span className="asof">
           as of {board.asOf.slice(0, 10)}

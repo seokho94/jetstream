@@ -1,8 +1,8 @@
-# Meridian — Product & Engineering Spec
+# Jetstream — Product & Engineering Spec
 
 > **The world, zoomed out.** A calm, intelligent way to see where global news is actually heading — not more headlines, but the *currents* underneath and which way they're moving.
 
-This is the single source of truth for building Meridian. Pair it with the pitch deck (`Meridian.pptx`) for the visual story. If you're an engineer or working in Claude Code: skim §1–3 for what we're building, then jump to **§8 (Build plan)** for the starting backlog.
+This is the single source of truth for building Jetstream. Pair it with the pitch deck (`Jetstream.pptx`) for the visual story. If you're an engineer or working in Claude Code: skim §1–3 for what we're building, then jump to **§8 (Build plan)** for the starting backlog.
 
 *Status: concept + design complete (three UI mockups, pitch deck, pipeline architecture). No code yet — this doc is the brief to start from. All data in mockups is illustrative (June 2026).*
 
@@ -263,7 +263,7 @@ interface Digest {
 - **Client:** Next.js (web first — MVP is English/web), charts hand-built in SVG/D3 to match the mockups. React Native later for native apps.
 
 ```
-meridian/
+jetstream/
   pipeline/                 # Python data engine
     ingest/                 # gdelt.py, news_api.py, rss.py
     normalize/              # dedupe, lang_detect, translate, embed
@@ -340,7 +340,7 @@ Two verticals (geopolitics + tech), automated.
 
 ## 10. Open decisions
 
-- **Product name** — "Meridian" is a placeholder.
+- **Product name** — "Jetstream" is a placeholder.
 - **Exact launch verticals** — geopolitics + tech assumed; confirm.
 - **Build vs. buy on clustering** — custom online clustering vs. an off-the-shelf topic/event service.
 - **Embedding + LLM providers** — pick and pin versions.

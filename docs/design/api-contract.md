@@ -1,8 +1,8 @@
-# Meridian — API Contract (`api-contract.md`)
+# Jetstream — API Contract (`api-contract.md`)
 
 > **⚠️ 검수 반영(v2):** [CANON](CANON.md) **§14**로 갱신 — 충돌 시 §14 최우선. 적용: **R2**(arc 평탄 `ArcPoint[]`) · **R3**(board rank=live momentum score 기반) · **R4**(`ArcPoint.value`=정규화 0..1) · **R7**(`BoardView.isCurrent` 추가) · **R8**(streamgraph 최대 8밴드+`Other` 시리즈) · **R12**(`lang` 파라미터·응답 필드) · **R13**(watch=Phase 1; `CurrentView`는 watch 상태 미포함, 클라 오버레이).
 
-> **목적 (한 줄):** Meridian의 세 뷰(board / current / digest)와 search를 서빙하는 **읽기전용 REST + 뷰별 BFF** API의 경로·페이로드·신선도·에러 계약을 canon 데이터모델과 1:1로 고정한다.
+> **목적 (한 줄):** Jetstream의 세 뷰(board / current / digest)와 search를 서빙하는 **읽기전용 REST + 뷰별 BFF** API의 경로·페이로드·신선도·에러 계약을 canon 데이터모델과 1:1로 고정한다.
 >
 > **적용 범위**
 > - **Phase 0 (구속):** `GET /v1/board`, `GET /v1/currents/{id}`, `GET /v1/digests/{issue}`, `GET /v1/search?q=` — vertical 1개(`geopolitics`), 수동 큐레이션 current ~10개, 8주 백필. 본 문서 전체가 발효.
@@ -487,7 +487,7 @@ interface DigestStats { currentsTracked: number; newThreads: number; storiesScan
 - `stale-while-revalidate`로 폴링 클라가 즉시 캐시본을 받고 백그라운드 갱신 → 체감 지연 0.
 
 ### 4.3 'as of' 노출 (canon §7)
-- 모든 신선도 민감 응답에 **`asOf`** 필드(= `board_view.as_of` / `current_view.as_of`)와 응답 헤더 `X-Meridian-As-Of: <ISO>`를 동시 노출. 클라는 "as of HH:MM" 라벨을 렌더(spec의 calm·competence 톤). board의 라이브 순위는 항상 이 `asOf` 시점 기준임을 라벨이 명시한다.
+- 모든 신선도 민감 응답에 **`asOf`** 필드(= `board_view.as_of` / `current_view.as_of`)와 응답 헤더 `X-Jetstream-As-Of: <ISO>`를 동시 노출. 클라는 "as of HH:MM" 라벨을 렌더(spec의 calm·competence 톤). board의 라이브 순위는 항상 이 `asOf` 시점 기준임을 라벨이 명시한다.
 - `generatedAt`(board)·`publishedAt`(current/digest)도 별도 노출 → "데이터 기준시각(asOf)" vs "객체 생성/발행시각" 구분.
 
 ### 4.4 stale 처리

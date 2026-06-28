@@ -9,7 +9,7 @@ import {
   type BoardView,
   type CurrentView,
   type Digest,
-} from "@meridian/shared";
+} from "@jetstream/shared";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 const REVALIDATE = 180; // seconds (CANON §7 ISR_REVALIDATE)

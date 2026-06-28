@@ -1,8 +1,8 @@
-# Meridian — Client Architecture (Frontend)
+# Jetstream — Client Architecture (Frontend)
 
 > **⚠️ 검수 반영(v2):** [CANON](CANON.md) **§14**로 갱신 — 충돌 시 §14 최우선. 적용: **R2**(`CurrentView.arc`=평탄 `ArcPoint[]`) · **R7**(`BoardView.isCurrent`로 stale 배지) · **R8**(streamgraph 서버 계약 준수: 8밴드+`Other`) · **R9**(`todaysRead={paragraph,asOf}`, `movers` enriched, `digestTeaser`, `TimelineNode.isLatest`) · **R11**(상태배지색↔current hue 충돌 방지) · **R12**(로케일 요청) · **R13**(상세 화면 watch 토글 오버레이).
 
-> **목적(한 줄):** Meridian의 3개 뷰(board · current · digest)를 다크 "intelligence terminal" 디자인으로, 순수 SVG+d3-shape 차트 / 모바일 우선 인터랙션 / RSC·ISR 페칭 경계 / 접근성·colorKey 거버넌스를 갖춘 Next.js 클라이언트로 구현하기 위한 설계서.
+> **목적(한 줄):** Jetstream의 3개 뷰(board · current · digest)를 다크 "intelligence terminal" 디자인으로, 순수 SVG+d3-shape 차트 / 모바일 우선 인터랙션 / RSC·ISR 페칭 경계 / 접근성·colorKey 거버넌스를 갖춘 Next.js 클라이언트로 구현하기 위한 설계서.
 >
 > **적용 범위:** Phase 0 (vertical 1개 `geopolitics`, 수동 큐레이션 ~10 currents, 8주 백필) 기준으로 전부 구속력. Phase 1 (+`technology`, 자동 합성·휴먼게이트) 동일 적용. Phase 2 (split/merge 자동 발견, 다언어) 상위 호환(컴포넌트 prop·팔레트 슬롯 추가만, 의미 변경 금지).
 >
@@ -423,7 +423,7 @@ export const COLOR_REGISTRY = [
 export async function generateMetadata({ params }): Promise<Metadata> {
   const cv = await fetchCurrent(params.id);
   return {
-    title: `${cv.name} — Meridian`,
+    title: `${cv.name} — Jetstream`,
     description: cv.brief.whatsHappening.slice(0, 155),
     openGraph: { images: [`/api/og/current/${cv.currentId}`], type: 'article' },
     twitter: { card: 'summary_large_image' },
@@ -441,7 +441,7 @@ export async function generateMetadata({ params }): Promise<Metadata> {
 
 canon §2의 4상태 어휘(rising/peaking/cooling/steady)를 첫 실행에 교육. spec §5.2 "제품이 plain language로 이 구분을 가르친다".
 
-- 트리거: `localStorage 'meridian.onboarded'` 미존재 시 board 첫 진입에서 3스텝 오버레이(스킵 가능, 탭타깃 ≥44px).
+- 트리거: `localStorage 'jetstream.onboarded'` 미존재 시 board 첫 진입에서 3스텝 오버레이(스킵 가능, 탭타깃 ≥44px).
 - 각 스텝 = MomentumBadge 실물 + 한 줄 정의:
   - **Rising** — "가속 중. 관심이 빨라지고 있어요." (`d1>0, d2≥0`)
   - **Peaking** — "정점 부근. 높지만 평탄해지는 중." (`d1≈0, d2<0`)

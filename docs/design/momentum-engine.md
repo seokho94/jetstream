@@ -1,4 +1,4 @@
-# Meridian — Momentum Engine (`momentum-engine.md`)
+# Jetstream — Momentum Engine (`momentum-engine.md`)
 
 > **⚠️ 검수 반영(v2):** [CANON](CANON.md) **§14**로 갱신 — 충돌 시 §14 최우선. 적용: **R3**(board rank=live `RANK() OVER momentum_point.score`; `weekly_rank`=digest 전용) · **R4**(`arc.value`=서버 정규화 0..1) · **R6**(Phase 0=volume+persistence만, spread·accel `z=0`, peaking 연기) · **R10**(board 랭킹 게이트 `RANK_MIN_VOLUME=5`, `COVERAGE_MIN_N`과 분리). 또한 §8 예시의 `spread`는 §1.3 기하혼합 공식상 ≈16.4.
 

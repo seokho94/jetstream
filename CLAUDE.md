@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The **Phase 0 scaffold is in place**: a monorepo with `pipeline/` (Python engine, skeleton), `api/` (FastAPI serving layer, seed-backed), `web/` (Next.js client — the three screens, seed-backed), `shared/` (TS types + design tokens), and `pipeline/db/schema.sql` (full DDL). The three screens render from **seed data** (spec Appendix), so they work without a DB or pipeline. The pipeline modules are mostly skeletons — real ingest/cluster/momentum/synthesis is the Phase 0/1 backlog.
 
-**Read `docs/meridian-spec.md` first for product intent.** Then read **`docs/design/`** for the *resolved engineering decisions*. `pipeline/db/schema.sql` and `shared/src/` are generated from those docs — change the design + regenerate, don't hand-drift.
+**Read `docs/jetstream-spec.md` first for product intent.** Then read **`docs/design/`** for the *resolved engineering decisions*. `pipeline/db/schema.sql` and `shared/src/` are generated from those docs — change the design + regenerate, don't hand-drift.
 
 ### Commands
 
@@ -31,9 +31,9 @@ python -m scripts.seed_sources          # populate source_registry (67 curated o
 python -m scripts.build_board           # GDELT → momentum_point / board_view / current_view / digest
 
 # Periodic refresh (Windows Scheduled Task — run yourself; installs standing execution):
-#   schtasks /create /tn MeridianRefresh /tr "powershell -NoProfile -ExecutionPolicy Bypass -File C:\git\jetstream\scripts\refresh.ps1" /sc DAILY /st 06:00 /f
+#   schtasks /create /tn JetstreamRefresh /tr "powershell -NoProfile -ExecutionPolicy Bypass -File C:\git\jetstream\scripts\refresh.ps1" /sc DAILY /st 06:00 /f
 efresh.ps1" /sc DAILY /st 06:00 /f
-#   schtasks /delete /tn MeridianRefresh /f     # remove
+#   schtasks /delete /tn JetstreamRefresh /f     # remove
 
 # Python lint / tests (after `pip install -e ".[dev]"`)
 ruff check pipeline api scripts
@@ -52,7 +52,7 @@ Spec contradictions already resolved in the design (don't "fix" them back):
 - **`steady` + color governance:** per-current hues must not collide with state-badge hues (amber/coral/steel/muted reserved). Re-hue rule is locked; exact hexes await design sign-off.
 - **`arc` ↔ `timeline` mapping** and many `§6` data-model gaps (vertical entity, `weekly_rank`, `embedding_version`, many-to-many membership, license/retention, `lang`) are added in `data-model.md`.
 
-## What Meridian is (one paragraph)
+## What Jetstream is (one paragraph)
 
 A consumer app that watches the whole world's news and surfaces the **10–15 macro "currents"** beneath it, each tagged with **momentum** (rising / peaking / cooling). It is a "zoom-out button," not another feed. Three views form the core loop: **the board** (home — state of the world), **the current** (detail — one thread in ~20s), and **the digest** (weekly — what changed). Positioning is *calmer AND smarter*; the emotional target is **competence**, not wellness.
 

@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from pipeline.sources import WHITELIST  # curated trusted-outlet set
 
 GDELT_DOC_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
-USER_AGENT = "MeridianBot/0.0 (+phase0; news currents)"
+USER_AGENT = "JetstreamBot/0.0 (+phase0; news currents)"
 
 # Vertical → GDELT DOC query. Phase 0 = geopolitics only (spec §8/§9).
 VERTICAL_QUERIES: dict[str, str] = {

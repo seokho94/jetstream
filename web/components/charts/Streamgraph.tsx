@@ -1,5 +1,5 @@
 import { stack, stackOffsetWiggle, stackOrderInsideOut, area, curveBasis } from "d3-shape";
-import { hueFor, type StreamgraphSeries } from "@meridian/shared";
+import { hueFor, type StreamgraphSeries } from "@jetstream/shared";
 
 type Row = Record<string, number>;
 

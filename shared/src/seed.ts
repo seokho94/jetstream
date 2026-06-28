@@ -161,7 +161,7 @@ export function buildCurrentView(id: string): CurrentView | null {
     },
     asOf: "2026-06-28T09:00:00Z",
     reviewedAt: "2026-06-28T07:30:00Z",
-    reviewedBy: "editor@meridian.news",
+    reviewedBy: "editor@jetstream.news",
     publishedAt: "2026-06-28T08:00:00Z",
     isLastKnownGood: true,
     etag: `seed-current-${id}`,

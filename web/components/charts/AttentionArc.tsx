@@ -1,5 +1,5 @@
 import { area, line, curveMonotoneX } from "d3-shape";
-import type { ArcPoint } from "@meridian/shared";
+import type { ArcPoint } from "@jetstream/shared";
 
 // Attention over ~6 months with numbered event markers (1..5) that map to timeline nodes.
 export function AttentionArc({

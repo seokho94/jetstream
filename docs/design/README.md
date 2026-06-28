@@ -1,6 +1,6 @@
-# Meridian — 설계 문서 (Phase 0)
+# Jetstream — 설계 문서 (Phase 0)
 
-`docs/meridian-spec.md`(제품·엔지니어링 브리프)를 **착수 가능한 설계**로 구체화한 문서 세트입니다. 갭 분석 → 권장 방향 확정 → 상호 일관성 검수(2라운드)를 거쳐 작성됐습니다.
+`docs/jetstream-spec.md`(제품·엔지니어링 브리프)를 **착수 가능한 설계**로 구체화한 문서 세트입니다. 갭 분석 → 권장 방향 확정 → 상호 일관성 검수(2라운드)를 거쳐 작성됐습니다.
 
 ## 권위 순서 (충돌 시)
 
@@ -8,7 +8,7 @@
 2. **[0001-foundational-decisions.md](0001-foundational-decisions.md)** — 기반(blocker) 결정의 ADR 기록(맥락/결정/근거/대안).
 3. 아래 상세 설계 문서들.
 
-상위 스펙 `../meridian-spec.md`와 충돌하면 본 세트가 이깁니다(스펙 내부 모순 — `steady` 상태, "GDELT only" vs 본문, 6색 vs 10~15, arc↔timeline — 을 의도적으로 해소했기 때문).
+상위 스펙 `../jetstream-spec.md`와 충돌하면 본 세트가 이깁니다(스펙 내부 모순 — `steady` 상태, "GDELT only" vs 본문, 6색 vs 10~15, arc↔timeline — 을 의도적으로 해소했기 때문).
 
 ## 읽는 순서
 
