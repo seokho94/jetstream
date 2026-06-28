@@ -20,6 +20,8 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 
+from pipeline.sources import WHITELIST  # curated trusted-outlet set
+
 GDELT_DOC_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
 USER_AGENT = "MeridianBot/0.0 (+phase0; news currents)"
 
@@ -29,16 +31,6 @@ VERTICAL_QUERIES: dict[str, str] = {
         '(geopolitics OR diplomacy OR sanctions OR "foreign policy" OR '
         '"national security" OR military OR treaty) sourcelang:english'
     ),
-}
-
-# Starter trusted-domain whitelist (placeholder for the 300–500 SourceRegistry set).
-WHITELIST: set[str] = {
-    "reuters.com", "apnews.com", "bbc.com", "bbc.co.uk", "theguardian.com",
-    "nytimes.com", "washingtonpost.com", "wsj.com", "ft.com", "economist.com",
-    "bloomberg.com", "aljazeera.com", "cnn.com", "nbcnews.com", "abcnews.go.com",
-    "cbsnews.com", "npr.org", "politico.com", "axios.com", "france24.com",
-    "dw.com", "euronews.com", "scmp.com", "japantimes.co.jp", "thehindu.com",
-    "timesofindia.indiatimes.com", "afp.com", "cnbc.com", "newsweek.com", "time.com",
 }
 
 _LANG_MAP = {

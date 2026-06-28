@@ -268,6 +268,30 @@ def publish(results: list[dict]) -> None:
                 ),
             )
 
+        # 5a) backfill last week's weekly_rank from as-of-(now−7d) momentum, so the digest
+        #     reshuffle shows real movement immediately instead of waiting a calendar week
+        prev_dt = now - dt.timedelta(days=7)
+        p_iso = prev_dt.isocalendar()
+        prev_issue = p_iso.year * 100 + p_iso.week
+        prev_week_of = prev_dt.date() - dt.timedelta(days=prev_dt.weekday())
+        cur.execute("SELECT count(*) FROM weekly_rank WHERE issue=%s", (prev_issue,))
+        if cur.fetchone()[0] == 0:
+            name_of = {it["id"]: it["name"] for it in items}
+            prev_items = []
+            for cid, series in series_map.items():
+                if len(series) > 21:
+                    f = facet_map[cid]
+                    ps = signals_for(series[:-7], spread_outlets=f.get("outlets", 0), spread_countries=f.get("countries", 0))
+                    prev_items.append({"id": cid, "name": name_of.get(cid, cid), "state": ps["state"], "_raw": ps["_raw"]})
+            if prev_items:
+                rank(prev_items)
+                for it in prev_items:
+                    cur.execute(
+                        "INSERT INTO weekly_rank (issue, current_id, week_of, rank, score, state) "
+                        "VALUES (%s,%s,%s,%s,%s,%s) ON CONFLICT (issue, current_id) DO NOTHING",
+                        (prev_issue, it["id"], prev_week_of, it["rank"], it["score"], it["state"]),
+                    )
+
         # 5) weekly_rank snapshot + digest
         for it in items:
             cur.execute(

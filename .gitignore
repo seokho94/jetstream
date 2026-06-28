@@ -19,6 +19,9 @@ venv/
 .env.local
 !.env.example
 
+# Runtime logs
+refresh.log
+
 # OS / editor
 .DS_Store
 Thumbs.db
