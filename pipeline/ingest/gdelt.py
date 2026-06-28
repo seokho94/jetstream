@@ -1,9 +1,9 @@
-"""GDELT collector — discovery layer (spec §4 stage 1, ingestion-and-clustering.md).
+"""GDELT collector — discovery + volume timelines (spec §4 stage 1).
 
-GDELT DOC 2.0 API yields article URLs + metadata (NOT bodies). We:
-  1. query one vertical (keyword/lang scope),
-  2. filter to a trusted-domain whitelist (volume + quality + crawl-safety),
-  3. normalize each hit into an Article *stub* (canonical_url, source_domain, ...).
+GDELT DOC 2.0 API yields article URLs/metadata (NOT bodies) and volume
+timelines. We:
+  1. discover() — query a vertical, whitelist-filter, emit Article *stubs*,
+  2. volume_timeline() — per-query daily article counts (drives momentum v0).
 
 Bodies are fetched + extracted later in `pipeline.normalize` (whitelist-only,
 SSRF-guarded). No external key required.
@@ -41,7 +41,6 @@ WHITELIST: set[str] = {
     "timesofindia.indiatimes.com", "afp.com", "cnbc.com", "newsweek.com", "time.com",
 }
 
-# GDELT language names → ISO-639-1 (the common ones; fallback handled below).
 _LANG_MAP = {
     "english": "en", "spanish": "es", "french": "fr", "german": "de",
     "portuguese": "pt", "italian": "it", "arabic": "ar", "russian": "ru",
@@ -72,14 +71,12 @@ def registrable_domain(domain: str) -> str:
     parts = d.split(".")
     if len(parts) <= 2:
         return d
-    # handle common two-part suffixes (co.uk, go.jp, ...)
     if parts[-2] in {"co", "com", "go", "org", "gov", "ac", "net"} and len(parts[-1]) == 2:
         return ".".join(parts[-3:])
     return ".".join(parts[-2:])
 
 
 def _parse_seendate(s: str) -> str:
-    """GDELT 'YYYYMMDDTHHMMSSZ' → ISO-8601 UTC."""
     try:
         return datetime.strptime(s, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).isoformat()
     except (ValueError, TypeError):
@@ -90,33 +87,8 @@ def _lang_iso(name: str) -> str:
     return _LANG_MAP.get((name or "").lower(), (name or "und").lower()[:2])
 
 
-def _to_stub(article: dict) -> dict:
-    """Map a GDELT DOC artlist record to an Article stub (no body yet)."""
-    url = article.get("url", "")
-    domain = registrable_domain(article.get("domain", ""))
-    return {
-        "url": url,
-        "canonical_url": canonicalize_url(url),
-        "source_domain": domain,
-        "published_at": _parse_seendate(article.get("seendate", "")),
-        "language": _lang_iso(article.get("language", "")),
-        "title": article.get("title", "").strip(),
-        "source_country": article.get("sourcecountry", "") or None,
-        "body": None,
-        "body_extracted": False,
-        "is_canonical": True,
-    }
-
-
-def _fetch(query: str, max_records: int, timespan: str, retries: int = 3) -> list[dict]:
-    params = {
-        "query": query,
-        "mode": "artlist",
-        "format": "json",
-        "maxrecords": str(max(1, min(max_records, 250))),
-        "timespan": timespan,
-        "sort": "datedesc",
-    }
+def _get_json(params: dict, retries: int = 3) -> dict:
+    """GET the DOC API with retry/backoff on 429/5xx. Returns parsed JSON."""
     req = urllib.request.Request(
         f"{GDELT_DOC_URL}?{urllib.parse.urlencode(params)}",
         headers={"User-Agent": USER_AGENT},
@@ -125,7 +97,7 @@ def _fetch(query: str, max_records: int, timespan: str, retries: int = 3) -> lis
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310 (trusted host)
                 raw = resp.read().decode("utf-8", "replace")
-        except urllib.error.HTTPError as e:  # 429 throttling / 5xx → backoff
+        except urllib.error.HTTPError as e:
             if e.code in (429, 500, 502, 503, 504) and attempt < retries - 1:
                 time.sleep(2**attempt)  # 1s, 2s, 4s
                 continue
@@ -136,11 +108,26 @@ def _fetch(query: str, max_records: int, timespan: str, retries: int = 3) -> lis
                 continue
             raise RuntimeError(f"GDELT unreachable: {e.reason}") from e
         try:
-            return json.loads(raw).get("articles", []) or []
+            return json.loads(raw)
         except json.JSONDecodeError:
-            # GDELT returns a plain-text error (e.g. throttling) instead of JSON.
             raise RuntimeError(f"GDELT non-JSON response: {raw[:160]!r}")
     raise RuntimeError("GDELT fetch failed after retries")
+
+
+def _to_stub(article: dict) -> dict:
+    url = article.get("url", "")
+    return {
+        "url": url,
+        "canonical_url": canonicalize_url(url),
+        "source_domain": registrable_domain(article.get("domain", "")),
+        "published_at": _parse_seendate(article.get("seendate", "")),
+        "language": _lang_iso(article.get("language", "")),
+        "title": article.get("title", "").strip(),
+        "source_country": article.get("sourcecountry", "") or None,
+        "body": None,
+        "body_extracted": False,
+        "is_canonical": True,
+    }
 
 
 def discover(
@@ -154,7 +141,11 @@ def discover(
     if not query:
         raise ValueError(f"unknown vertical {vertical!r}; known: {sorted(VERTICAL_QUERIES)}")
 
-    raw = _fetch(query, max_records, timespan)
+    raw = _get_json(
+        {"query": query, "mode": "artlist", "format": "json",
+         "maxrecords": str(max(1, min(max_records, 250))), "timespan": timespan, "sort": "datedesc"}
+    ).get("articles", []) or []
+
     stubs: list[dict] = []
     seen: set[str] = set()
     dropped_offlist = 0
@@ -164,20 +155,40 @@ def discover(
         if whitelist_only and stub["source_domain"] not in WHITELIST:
             dropped_offlist += 1
             continue
-        if stub["canonical_url"] in seen:  # cheap canonical-URL dedup (SimHash is in normalize)
+        if stub["canonical_url"] in seen:
             deduped += 1
             continue
         seen.add(stub["canonical_url"])
         stubs.append(stub)
 
     return {
-        "vertical": vertical,
-        "fetched": len(raw),
-        "kept": len(stubs),
-        "dropped_offlist": dropped_offlist,  # logged, never silent (design principle)
-        "deduped": deduped,
-        "stubs": stubs,
+        "vertical": vertical, "fetched": len(raw), "kept": len(stubs),
+        "dropped_offlist": dropped_offlist, "deduped": deduped, "stubs": stubs,
     }
+
+
+def volume_timeline(query: str, timespan: str = "10w", drop_last: bool = True) -> list[tuple[str, int]]:
+    """Daily article-count series for a query → [(YYYY-MM-DD, count)].
+
+    Uses GDELT DOC mode=timelinevolraw (value = matching article count/day).
+    drop_last removes the in-progress current day (partial, biases momentum).
+    """
+    data = _get_json(
+        {"query": query, "mode": "timelinevolraw", "format": "json", "timespan": timespan}
+    ).get("timeline", [])
+    if not data:
+        return []
+    points = data[0].get("data", [])
+    series: list[tuple[str, int]] = []
+    for p in points:
+        try:
+            d = datetime.strptime(p["date"], "%Y%m%dT%H%M%SZ").date().isoformat()
+        except (ValueError, KeyError, TypeError):
+            continue
+        series.append((d, int(p.get("value", 0))))
+    if drop_last and len(series) > 1:
+        series = series[:-1]
+    return series
 
 
 def main() -> None:
@@ -190,9 +201,7 @@ def main() -> None:
     args = ap.parse_args()
 
     result = discover(
-        vertical=args.vertical,
-        max_records=args.max,
-        timespan=args.timespan,
+        vertical=args.vertical, max_records=args.max, timespan=args.timespan,
         whitelist_only=not args.all_domains,
     )
     print(

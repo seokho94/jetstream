@@ -67,12 +67,47 @@ def list_currents() -> tuple[list[dict], str]:
     )
 
 
-def get_board() -> tuple[BoardView, str]:
-    """Seed board enriched with DB current names/hues when a DB is present.
+def _board_from_db() -> BoardView | None:
+    """Read the published board_view (the real board built by scripts.build_board)."""
+    dsn = _dsn()
+    if not (psycopg and dsn):
+        return None
+    try:
+        with psycopg.connect(dsn, connect_timeout=2) as conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, as_of, generated_at, is_current, todays_read, streamgraph, ranked, stats, etag
+                FROM board_view WHERE is_current ORDER BY id DESC LIMIT 1
+                """
+            )
+            row = cur.fetchone()
+        if not row:
+            return None
+        bid, as_of, generated_at, is_current, todays_read, streamgraph, ranked, stats, etag = row
+        teaser = seed.build_board().digestTeaser  # digest is still seed-backed in Phase 0
+        return BoardView(
+            id=bid,
+            asOf=as_of.isoformat(),
+            generatedAt=generated_at.isoformat(),
+            isCurrent=is_current,
+            todaysRead=todays_read,
+            streamgraph=streamgraph,
+            ranked=ranked,
+            digestTeaser=teaser,
+            stats=stats,
+            etag=etag,
+            lang="en",
+        )
+    except Exception:
+        return None
 
-    Phase 0: momentum/arc still come from seed (published views aren't generated
-    yet); names + color_key are overlaid from the DB to prove the read path.
-    """
+
+def get_board() -> tuple[BoardView, str]:
+    """Prefer the real published board_view; else seed enriched with DB current names/hues."""
+    board = _board_from_db()
+    if board is not None:
+        return board, "db"
+
     board = seed.build_board()
     rows, source = list_currents()
     if source == "db" and rows:
